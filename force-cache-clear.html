@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netejant Caché - Ifercat Contractació Pública</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+            background: #2a2a2a;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #007BFF;
+            margin-bottom: 20px;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #444;
+            border-top-color: #007BFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .status {
+            margin: 20px 0;
+            font-size: 18px;
+        }
+        .instructions {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .instructions h3 {
+            color: #FFC107;
+            margin-top: 0;
+        }
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+        .button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: #ff4444;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Netejant Caché del Navegador</h1>
+        <div class="spinner"></div>
+        <div class="status" id="status">Forçant actualització completa...</div>
+        
+        <div class="instructions">
+            <h3>⚠️ INSTRUCCIONS IMPORTANTS:</h3>
+            <ul>
+                <li><strong>Windows/Linux:</strong> Prem <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> diverses vegades</li>
+                <li><strong>Mac:</strong> Prem <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> diverses vegades</li>
+                <li><strong>O bé:</strong> Prem <kbd>F12</kbd> → Pestanya "Network" → ✓ "Disable cache" → Recarregar</li>
+            </ul>
+            <p><strong>Si continua sense funcionar:</strong></p>
+            <ol>
+                <li>Obre una finestra d'incògnit/privada</li>
+                <li>Visita: <a href="https://ifercatcontractacio.netlify.app" target="_blank" style="color: #007BFF;">https://ifercatcontractacio.netlify.app</a></li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="/" class="button" onclick="forceClearAndRedirect(event)">Anar a l'Aplicació</a>
+            <a href="/emergency-debug.html" class="button" style="background: #dc3545;">Panell Debug</a>
+        </div>
+        
+        <p style="margin-top: 20px; font-size: 14px; color: #999;">
+            Versió desplegada: <span id="version">Verificant...</span>
+        </p>
+    </div>
+
+    <script>
+        // Forçar neteja de caché
+        function forceClearAndRedirect(e) {
+            e.preventDefault();
+            
+            // Afegir timestamp per forçar recàrrega
+            const timestamp = new Date().getTime();
+            const baseUrl = window.location.origin;
+            
+            // Netejar localStorage i sessionStorage
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                console.log('✅ Storage netejat');
+            } catch (err) {
+                console.error('Error netejant storage:', err);
+            }
+            
+            // Intentar netejar service workers
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                    console.log('✅ Service workers eliminats');
+                });
+            }
+            
+            // Redirigir amb cache-bust
+            setTimeout(() => {
+                window.location.href = baseUrl + '/?v=' + timestamp + '&cache=clear';
+            }, 1000);
+        }
+        
+        // Verificar versió
+        fetch('/main.js?t=' + Date.now())
+            .then(response => response.text())
+            .then(text => {
+                if (text.includes('MAX_RETRIES = 10')) {
+                    document.getElementById('version').textContent = '✅ NOVA (amb fixes P0)';
+                    document.getElementById('version').style.color = '#4CAF50';
+                } else {
+                    document.getElementById('version').textContent = '❌ ANTIGA (sense fixes)';
+                    document.getElementById('version').style.color = '#ff4444';
+                    document.getElementById('status').innerHTML = '<span class="error">⚠️ La versió antiga encara està a la caché!</span>';
+                }
+            })
+            .catch(err => {
+                document.getElementById('version').textContent = '❓ No es pot verificar';
+                console.error('Error verificant versió:', err);
+            });
+            
+        // Auto-redirect després de 5 segons
+        let countdown = 5;
+        const interval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                document.getElementById('status').textContent = `Redirigint en ${countdown} segons...`;
+            } else {
+                clearInterval(interval);
+                forceClearAndRedirect({ preventDefault: () => {} });
+            }
+        }, 1000);
+    </script>
+</body>
+</html> 

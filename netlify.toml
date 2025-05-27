@@ -5,17 +5,48 @@
 [build.environment]
   NODE_VERSION = "18"
 
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Content-Type = "application/javascript; charset=UTF-8"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Content-Type = "text/css; charset=UTF-8"
+
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/clear-cache"
+  to = "/force-cache-clear.html"
   status = 200
+
+[[redirects]]
+  from = "/debug"
+  to = "/emergency-debug.html"
+  status = 200
+
+# Forçar HTTPS
+[[redirects]]
+  from = "http://ifercatcontractacio.netlify.app/*"
+  to = "https://ifercatcontractacio.netlify.app/:splat"
+  status = 301
+  force = true
 
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://openrouter.ai https://api.openrouter.ai; frame-ancestors 'none';"
 
