@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Contractació Pública App</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+        button {
+            background: #333;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0f0;
+            color: #000;
+        }
+        #console {
+            background: #000;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug Panel - Contractació Pública App</h1>
+    
+    <div class="section">
+        <h2>Estado de Scripts</h2>
+        <div id="script-status"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Estado de Clases</h2>
+        <div id="class-status"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Estado de la Aplicación</h2>
+        <div id="app-status"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Pruebas de Funcionalidad</h2>
+        <button onclick="testInit()">Test Inicialización</button>
+        <button onclick="testNavigation()">Test Navegación</button>
+        <button onclick="testChatbot()">Test Chatbot</button>
+        <button onclick="testButtons()">Test Botones</button>
+        <button onclick="clearConsole()">Limpiar Consola</button>
+    </div>
+    
+    <div class="section">
+        <h2>Consola de Debug</h2>
+        <div id="console"></div>
+    </div>
+
+    <!-- Cargar todos los scripts necesarios -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/content-loader.js"></script>
+    <script src="/chatbot.js"></script>
+    <script src="/app.js"></script>
+    
+    <script>
+        const debugConsole = document.getElementById('console');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            debugConsole.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+        
+        function clearConsole() {
+            debugConsole.innerHTML = '';
+            log('Consola limpiada', 'success');
+        }
+        
+        // Interceptar console.log, console.error, etc.
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log('LOG: ' + args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log('ERROR: ' + args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            log('WARN: ' + args.join(' '), 'warning');
+        };
+        
+        // Verificar estado de scripts
+        function checkScriptStatus() {
+            const scripts = [
+                { name: 'AOS', check: () => typeof AOS !== 'undefined' },
+                { name: 'marked', check: () => typeof marked !== 'undefined' },
+                { name: 'ContentLoader', check: () => typeof ContentLoader !== 'undefined' },
+                { name: 'Chatbot', check: () => typeof Chatbot !== 'undefined' },
+                { name: 'App', check: () => typeof App !== 'undefined' }
+            ];
+            
+            const statusDiv = document.getElementById('script-status');
+            statusDiv.innerHTML = '';
+            
+            scripts.forEach(script => {
+                const loaded = script.check();
+                const status = loaded ? '✅ Cargado' : '❌ No cargado';
+                const className = loaded ? 'success' : 'error';
+                statusDiv.innerHTML += `<div class="${className}">${script.name}: ${status}</div>`;
+                log(`${script.name}: ${status}`, loaded ? 'success' : 'error');
+            });
+        }
+        
+        // Verificar estado de clases
+        function checkClassStatus() {
+            const classes = [
+                'ThemeManager',
+                'SmoothScroll',
+                'LoadingManager',
+                'NavigationManager',
+                'AnimationManager',
+                'ErrorHandler',
+                'CONFIG'
+            ];
+            
+            const statusDiv = document.getElementById('class-status');
+            statusDiv.innerHTML = '';
+            
+            classes.forEach(className => {
+                const exists = typeof window[className] !== 'undefined';
+                const status = exists ? '✅ Disponible' : '❌ No disponible';
+                const classType = exists ? 'success' : 'error';
+                statusDiv.innerHTML += `<div class="${classType}">${className}: ${status}</div>`;
+            });
+        }
+        
+        // Verificar estado de la aplicación
+        function checkAppStatus() {
+            const statusDiv = document.getElementById('app-status');
+            statusDiv.innerHTML = '';
+            
+            if (window.app) {
+                statusDiv.innerHTML += '<div class="success">✅ window.app existe</div>';
+                statusDiv.innerHTML += `<div>- ThemeManager: ${window.app.themeManager ? '✅' : '❌'}</div>`;
+                statusDiv.innerHTML += `<div>- ContentLoader: ${window.app.contentLoader ? '✅' : '❌'}</div>`;
+                statusDiv.innerHTML += `<div>- Chatbot: ${window.app.chatbot ? '✅' : '❌'}</div>`;
+                
+                // Verificar métodos
+                const methods = ['init', 'showSection', 'showCriteriaTab', 'scrollToChat'];
+                methods.forEach(method => {
+                    const hasMethod = typeof window.app[method] === 'function';
+                    statusDiv.innerHTML += `<div>- ${method}(): ${hasMethod ? '✅' : '❌'}</div>`;
+                });
+            } else {
+                statusDiv.innerHTML += '<div class="error">❌ window.app NO existe</div>';
+            }
+        }
+        
+        // Test de inicialización
+        async function testInit() {
+            log('Iniciando test de inicialización...', 'warning');
+            
+            if (!window.app) {
+                log('Creando nueva instancia de App...', 'warning');
+                window.app = new App();
+            }
+            
+            try {
+                await window.app.init();
+                log('✅ Aplicación inicializada correctamente', 'success');
+                checkAppStatus();
+            } catch (error) {
+                log('❌ Error al inicializar: ' + error.message, 'error');
+            }
+        }
+        
+        // Test de navegación
+        function testNavigation() {
+            log('Probando navegación...', 'warning');
+            
+            if (!window.app) {
+                log('❌ window.app no existe', 'error');
+                return;
+            }
+            
+            const sections = ['home', 'guide', 'criteria', 'tools', 'chat'];
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    log(`Navegando a sección: ${section}`);
+                    window.app.showSection(section);
+                }, index * 500);
+            });
+        }
+        
+        // Test de chatbot
+        function testChatbot() {
+            log('Probando chatbot...', 'warning');
+            
+            if (!window.app || !window.app.chatbot) {
+                log('❌ Chatbot no inicializado', 'error');
+                return;
+            }
+            
+            log('✅ Chatbot disponible', 'success');
+            window.app.chatbot.sendMessage('Hola, soy una prueba de debug');
+        }
+        
+        // Test de botones
+        function testButtons() {
+            log('Probando funciones de botones...', 'warning');
+            
+            if (!window.app) {
+                log('❌ window.app no existe', 'error');
+                return;
+            }
+            
+            const functions = [
+                'showLegalInfo',
+                'showContractTypes',
+                'showProcedures',
+                'showTemplates',
+                'showCalculator',
+                'showCalendar',
+                'scrollToChat'
+            ];
+            
+            functions.forEach(func => {
+                if (typeof window.app[func] === 'function') {
+                    log(`✅ ${func} disponible`, 'success');
+                } else {
+                    log(`❌ ${func} NO disponible`, 'error');
+                }
+            });
+        }
+        
+        // Ejecutar verificaciones al cargar
+        window.addEventListener('load', () => {
+            log('=== DEBUG PANEL INICIADO ===', 'success');
+            checkScriptStatus();
+            checkClassStatus();
+            checkAppStatus();
+            
+            // Intentar inicializar automáticamente después de 2 segundos
+            setTimeout(() => {
+                if (!window.app) {
+                    log('Auto-inicializando aplicación...', 'warning');
+                    testInit();
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html> 

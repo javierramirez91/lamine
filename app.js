@@ -653,26 +653,19 @@ class App {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM carregat, inicialitzant aplicació...');
-    const app = new App();
-    app.init().then(() => {
-        console.log("App inicialitzada completament.");
-    }).catch(err => {
-        console.error("Error final en la inicialització de l'App:", err);
-    });
-    window.app = app; 
-});
-
 // Gestió d'errors globals
 window.addEventListener('error', (e) => {
     console.error('Error global:', e.error);
-    ErrorHandler.show('S\'ha produït un error inesperat.');
+    if (typeof ErrorHandler !== 'undefined') {
+        ErrorHandler.show('S\'ha produït un error inesperat.');
+    }
 });
 
 window.addEventListener('unhandledrejection', (e) => {
     console.error('Promise rebutjada:', e.reason);
-    ErrorHandler.show('Error de connexió. Si us plau, comprova la teva connexió a internet.');
+    if (typeof ErrorHandler !== 'undefined') {
+        ErrorHandler.show('Error de connexió. Si us plau, comprova la teva connexió a internet.');
+    }
 });
 
 // Exportar per a ús global

@@ -1,20 +1,50 @@
-// Log para verificar que main.js se está cargando
-console.log('main.js carregat correctament');
+// main.js - Punto de entrada principal
+console.log('main.js iniciando...');
 
-// Esperar a que el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
+// Función para verificar si todos los scripts están cargados
+function checkDependencies() {
+    const deps = {
+        ContentLoader: typeof ContentLoader !== 'undefined',
+        Chatbot: typeof Chatbot !== 'undefined',
+        App: typeof App !== 'undefined',
+        AOS: typeof AOS !== 'undefined',
+        marked: typeof marked !== 'undefined'
+    };
+    
+    console.log('Estado de dependencias:', deps);
+    
+    return deps.ContentLoader && deps.Chatbot && deps.App;
 }
 
-function initApp() {
-    console.log('Inicialitzant aplicació des de main.js...');
+// Función para inicializar la aplicación
+function initializeApp() {
+    console.log('Intentando inicializar la aplicación...');
     
-    // Esperar un poco para que se carguen todos los scripts
-    setTimeout(() => {
-        try {
-            // Inicializar AOS cuando esté disponible
+    if (!checkDependencies()) {
+        console.error('Faltan dependencias, reintentando en 500ms...');
+        setTimeout(initializeApp, 500);
+        return;
+    }
+    
+    try {
+        // Crear instancia global de la aplicación
+        window.app = new App();
+        console.log('Instancia de App creada');
+        
+        // Inicializar la aplicación
+        window.app.init().then(() => {
+            console.log('✅ Aplicación inicializada correctamente');
+            
+            // Ocultar pantalla de carga
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }
+            
+            // Inicializar AOS si está disponible
             if (typeof AOS !== 'undefined') {
                 AOS.init({
                     duration: 800,
@@ -22,51 +52,51 @@ function initApp() {
                     once: true,
                     offset: 100
                 });
-                console.log('AOS inicialitzat');
+                console.log('✅ AOS inicializado');
             }
             
-            // Verificar que las clases estén disponibles
-            if (typeof App !== 'undefined' && typeof ContentLoader !== 'undefined' && typeof Chatbot !== 'undefined') {
-                console.log('Creant instància de App...');
-                window.app = new App();
-                window.app.init().then(() => {
-                    console.log('App inicialitzada correctament!');
-                    // Ocultar pantalla de carga
-                    const loadingScreen = document.getElementById('loading-screen');
-                    if (loadingScreen) {
-                        loadingScreen.style.display = 'none';
-                    }
-                }).catch(error => {
-                    console.error('Error inicialitzant App:', error);
-                    showError();
-                });
-            } else {
-                console.error('Classes no trobades:', {
-                    App: typeof App !== 'undefined',
-                    ContentLoader: typeof ContentLoader !== 'undefined', 
-                    Chatbot: typeof Chatbot !== 'undefined'
-                });
-                showError();
-            }
-            
-        } catch (error) {
-            console.error('Error inicialitzant aplicació:', error);
-            showError();
-        }
-    }, 500);
+        }).catch(error => {
+            console.error('❌ Error al inicializar la aplicación:', error);
+            showErrorScreen(error.message);
+        });
+        
+    } catch (error) {
+        console.error('❌ Error crítico:', error);
+        showErrorScreen(error.message);
+    }
 }
 
-function showError() {
+// Función para mostrar pantalla de error
+function showErrorScreen(errorMessage) {
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         loadingScreen.innerHTML = `
             <div class="loading-content">
                 <h2 style="color: #ff4444;">Error carregant l'aplicació</h2>
-                <p>Si us plau, recarrega la pàgina</p>
-                <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    Recarregar
+                <p style="margin: 20px 0; color: #666;">${errorMessage || 'Error desconegut'}</p>
+                <button onclick="location.reload()" style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Recarregar Pàgina
                 </button>
             </div>
         `;
     }
-} 
+}
+
+// Esperar a que el DOM esté completamente cargado
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM cargado, esperando 1 segundo para asegurar carga de scripts...');
+        setTimeout(initializeApp, 1000);
+    });
+} else {
+    console.log('DOM ya cargado, esperando 1 segundo para asegurar carga de scripts...');
+    setTimeout(initializeApp, 1000);
+}
+
+// Verificación adicional después de 5 segundos
+setTimeout(() => {
+    if (!window.app) {
+        console.error('❌ La aplicación no se ha inicializado después de 5 segundos');
+        showErrorScreen('Tiempo de espera agotado. Por favor, recarga la página.');
+    }
+}, 5000); 
