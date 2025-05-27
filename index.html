@@ -618,41 +618,6 @@
     <script src="/app.js"></script>
     <script src="/main.js"></script>
     
-    <!-- Script de inicialización rápida -->
-    <script>
-        // Asegurar que el chat sea visible inmediatamente
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mostrar chat por defecto
-            const sections = document.querySelectorAll('main > section');
-            sections.forEach(section => {
-                section.classList.remove('active-section');
-            });
-            
-            const chatSection = document.getElementById('chat');
-            if (chatSection) {
-                chatSection.classList.add('active-section');
-            }
-            
-            // Actualizar navegación
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('data-section') === 'chat') {
-                    link.classList.add('active');
-                }
-            });
-            
-            // Ocultar pantalla de carga después de un momento
-            setTimeout(() => {
-                const loadingScreen = document.getElementById('loading-screen');
-                if (loadingScreen) {
-                    loadingScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                    }, 500);
-                }
-            }, 100);
-        });
-    </script>
+    <!-- Script de inicialización eliminado - gestionado por main.js -->
 </body>
 </html> 
