@@ -261,8 +261,8 @@ class App {
             // Event listeners
             this.setupEventListeners();
 
-            // Activar la secció inicial (home per defecte)
-            this.showSection('home'); 
+            // Activar la secció inicial (CHAT per defecte)
+            this.showSection('chat'); 
 
             LoadingManager.hide();
             
