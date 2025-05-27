@@ -4,7 +4,7 @@ import { resolve } from 'path';
 console.log('Post-build: Arreglando build de producción...');
 
 // Copiar archivos JavaScript y CSS a dist
-const filesToCopy = ['content-loader.js', 'chatbot.js', 'app.js', 'styles.css'];
+const filesToCopy = ['content-loader.js', 'chatbot.js', 'app.js', 'main.js', 'styles.css'];
 const distPath = resolve('dist');
 
 filesToCopy.forEach(file => {
@@ -33,8 +33,8 @@ let finalHtml = originalHtml
     .replace(/src="\/content-loader\.js"/g, 'src="/content-loader.js"')
     .replace(/src="\/chatbot\.js"/g, 'src="/chatbot.js"')
     .replace(/src="\/app\.js"/g, 'src="/app.js"')
-    .replace(/src="\/main\.js"/g, `src="/assets/${mainJsFile}"`)
-    .replace(/href="styles\.css"/g, 'href="/styles.css"');
+    .replace(/src="\/main\.js"/g, 'src="/main.js"')
+    .replace(/href="\/styles\.css"/g, 'href="/styles.css"');
 
 // Escribir el HTML final
 writeFileSync(resolve(distPath, 'index.html'), finalHtml);
